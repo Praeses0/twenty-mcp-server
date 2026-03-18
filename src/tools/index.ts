@@ -48,24 +48,16 @@ export function registerPersonTools(server: McpServer, client: TwentyClient) {
         ...(args.city && { city: args.city }),
       };
 
-      // Use REST API when custom fields are present (GraphQL rejects unknown fields)
-      if (args.customFields && Object.keys(args.customFields).length > 0) {
+      // Merge custom fields and always use REST API (supports both standard and custom fields)
+      if (args.customFields) {
         Object.assign(personData, args.customFields);
-        const result = await client.restCreate('people', personData);
-        const p = result.createPerson || result.createPeople?.[0] || result;
-        return {
-          content: [{
-            type: 'text' as const,
-            text: `Contact created successfully: ${args.firstName} ${args.lastName} (ID: ${p.id})`
-          }]
-        };
       }
-
-      const person = await client.createPerson(personData);
+      const result = await client.restCreate('people', personData);
+      const p = result.createPerson || result.createPeople?.[0] || result;
       return {
         content: [{
           type: 'text' as const,
-          text: `Contact created successfully: ${person.name.firstName} ${person.name.lastName} (ID: ${person.id})`
+          text: `Contact created successfully: ${args.firstName} ${args.lastName} (ID: ${p.id})`
         }]
       };
     } catch (error) {
@@ -136,24 +128,16 @@ export function registerPersonTools(server: McpServer, client: TwentyClient) {
       if (jobTitle) updates.jobTitle = jobTitle;
       if (linkedinUrl) updates.linkedinLink = { primaryLinkUrl: linkedinUrl };
       if (city) updates.city = city;
-      // Use REST API when custom fields are present
-      if (args.customFields && Object.keys(args.customFields).length > 0) {
+      // Merge custom fields and always use REST API
+      if (args.customFields) {
         Object.assign(updates, args.customFields);
-        const result = await client.restUpdate('people', id, updates);
-        const p = result.updatePerson || result;
-        return {
-          content: [{
-            type: 'text' as const,
-            text: `Contact updated successfully: ${p.name?.firstName || firstName || ''} ${p.name?.lastName || lastName || ''}`
-          }]
-        };
       }
-
-      const person = await client.updatePerson(id, updates);
+      const result = await client.restUpdate('people', id, updates);
+      const p = result.updatePerson || result;
       return {
         content: [{
           type: 'text' as const,
-          text: `Contact updated successfully: ${person.name.firstName} ${person.name.lastName}`
+          text: `Contact updated successfully: ${p.name?.firstName || firstName || ''} ${p.name?.lastName || lastName || ''}`
         }]
       };
     } catch (error) {
@@ -272,24 +256,16 @@ export function registerCompanyTools(server: McpServer, client: TwentyClient) {
         ...(args.idealCustomerProfile !== undefined && { idealCustomerProfile: args.idealCustomerProfile }),
       };
 
-      // Use REST API when custom fields are present
-      if (args.customFields && Object.keys(args.customFields).length > 0) {
+      // Merge custom fields and always use REST API
+      if (args.customFields) {
         Object.assign(companyData, args.customFields);
-        const result = await client.restCreate('companies', companyData);
-        const c = result.createCompany || result;
-        return {
-          content: [{
-            type: 'text' as const,
-            text: `Company created successfully: ${args.name} (ID: ${c.id})`
-          }]
-        };
       }
-
-      const company = await client.createCompany(companyData);
+      const result = await client.restCreate('companies', companyData);
+      const c = result.createCompany || result;
       return {
         content: [{
           type: 'text' as const,
-          text: `Company created successfully: ${company.name} (ID: ${company.id})`
+          text: `Company created successfully: ${args.name} (ID: ${c.id})`
         }]
       };
     } catch (error) {
@@ -378,24 +354,16 @@ export function registerCompanyTools(server: McpServer, client: TwentyClient) {
         }),
         ...(updateData.idealCustomerProfile !== undefined && { idealCustomerProfile: updateData.idealCustomerProfile }),
       };
-      // Use REST API when custom fields are present
-      if (args.customFields && Object.keys(args.customFields).length > 0) {
+      // Merge custom fields and always use REST API
+      if (args.customFields) {
         Object.assign(updates, args.customFields);
-        const result = await client.restUpdate('companies', id, updates);
-        const c = result.updateCompany || result;
-        return {
-          content: [{
-            type: 'text' as const,
-            text: `Company updated successfully: ${c.name || args.name || 'Updated'}`
-          }]
-        };
       }
-
-      const company = await client.updateCompany(id, updates);
+      const result = await client.restUpdate('companies', id, updates);
+      const c = result.updateCompany || result;
       return {
         content: [{
           type: 'text' as const,
-          text: `Company updated successfully: ${company.name}`
+          text: `Company updated successfully: ${c.name || args.name || 'Updated'}`
         }]
       };
     } catch (error) {

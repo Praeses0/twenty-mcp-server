@@ -41,9 +41,16 @@ export class TwentyClient {
       },
       body: JSON.stringify(data),
     });
-    const json = await res.json() as any;
-    if (json.error || json.statusCode >= 400) {
-      throw new Error(json.messages?.join(', ') || json.error || 'REST create failed');
+    const text = await res.text();
+    let json: any;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new Error(`REST create failed (${res.status}): ${text.substring(0, 500)}`);
+    }
+    if (!res.ok || json.error || json.statusCode >= 400) {
+      const msg = json.messages?.join(', ') || json.error || json.message || text.substring(0, 500);
+      throw new Error(`REST create failed (${res.status}): ${msg}`);
     }
     return json.data;
   }
@@ -57,9 +64,16 @@ export class TwentyClient {
       },
       body: JSON.stringify(data),
     });
-    const json = await res.json() as any;
-    if (json.error || json.statusCode >= 400) {
-      throw new Error(json.messages?.join(', ') || json.error || 'REST update failed');
+    const text = await res.text();
+    let json: any;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new Error(`REST update failed (${res.status}): ${text.substring(0, 500)}`);
+    }
+    if (!res.ok || json.error || json.statusCode >= 400) {
+      const msg = json.messages?.join(', ') || json.error || json.message || text.substring(0, 500);
+      throw new Error(`REST update failed (${res.status}): ${msg}`);
     }
     return json.data;
   }
@@ -1048,11 +1062,40 @@ export class TwentyClient {
         // Fields fetch failed
       }
     } else {
-      // Get all fields across all objects
+      // Get all fields across all objects by fetching each one individually
       const allObjects = await this.fetchMetadataObjects();
+      const allFieldsQuery = `
+        query GetFields($id: UUID!) {
+          object(id: $id) {
+            fields(paging: { first: 200 }) {
+              edges {
+                node {
+                  id
+                  name
+                  label
+                  description
+                  type
+                  isCustom
+                  isActive
+                  isNullable
+                  isSystem
+                  defaultValue
+                  options
+                  createdAt
+                  updatedAt
+                }
+              }
+            }
+          }
+        }
+      `;
       for (const obj of allObjects) {
-        if (obj.fields) {
-          fields = fields.concat(obj.fields);
+        try {
+          const fieldsResult = await this.getMetadataClient().request(allFieldsQuery, { id: obj.id }) as any;
+          const objFields = fieldsResult.object?.fields?.edges?.map((e: any) => e.node) || [];
+          fields = fields.concat(objFields);
+        } catch {
+          // Skip objects that fail
         }
       }
     }

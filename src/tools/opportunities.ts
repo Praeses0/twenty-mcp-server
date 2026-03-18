@@ -33,28 +33,18 @@ export function registerOpportunityTools(server: McpServer, client: TwentyClient
         if (closeDate) opportunityData.closeDate = closeDate;
         if (companyId) opportunityData.companyId = companyId;
         if (pointOfContactId) opportunityData.pointOfContactId = pointOfContactId;
-        // Use REST API when custom fields are present
-        if (customFields && Object.keys(customFields).length > 0) {
+        // Merge custom fields and always use REST API
+        if (customFields) {
           Object.assign(opportunityData, customFields);
-          const result = await client.restCreate('opportunities', opportunityData);
-          const o = result.createOpportunity || result;
-          return {
-            content: [{
-              type: 'text',
-              text: `Created opportunity: ${name} (ID: ${o.id})`
-            }],
-            data: o
-          };
         }
-
-        const opportunity = await client.createOpportunity(opportunityData);
-
+        const result = await client.restCreate('opportunities', opportunityData);
+        const o = result.createOpportunity || result;
         return {
           content: [{
             type: 'text',
-            text: `Created opportunity: ${opportunity.name} (ID: ${opportunity.id})`
+            text: `Created opportunity: ${name} (ID: ${o.id})`
           }],
-          data: opportunity
+          data: o
         };
       } catch (error: any) {
         return {
@@ -147,31 +137,18 @@ Contact ID: ${opportunity.pointOfContactId || 'None'}`
         if (input.closeDate) updateData.closeDate = input.closeDate;
         if (input.companyId) updateData.companyId = input.companyId;
         if (input.pointOfContactId) updateData.pointOfContactId = input.pointOfContactId;
-        // Use REST API when custom fields are present
-        if (input.customFields && Object.keys(input.customFields).length > 0) {
+        // Merge custom fields and always use REST API
+        if (input.customFields) {
           Object.assign(updateData, input.customFields);
-          const result = await client.restUpdate('opportunities', input.id, updateData);
-          const o = result.updateOpportunity || result;
-          return {
-            content: [{
-              type: 'text',
-              text: `Updated opportunity: ${o.name || input.name || 'Updated'} (ID: ${input.id})`
-            }],
-            data: o
-          };
         }
-
-        const opportunity = await client.updateOpportunity({
-          id: input.id,
-          ...updateData
-        });
-        
+        const result = await client.restUpdate('opportunities', input.id, updateData);
+        const o = result.updateOpportunity || result;
         return {
           content: [{
             type: 'text',
-            text: `Updated opportunity: ${opportunity.name} (ID: ${opportunity.id})`
+            text: `Updated opportunity: ${o.name || input.name || 'Updated'} (ID: ${input.id})`
           }],
-          data: opportunity
+          data: o
         };
       } catch (error: any) {
         return {
