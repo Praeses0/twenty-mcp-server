@@ -31,6 +31,39 @@ export class TwentyClient {
     });
   }
 
+  // REST helper for operations that need custom field support
+  async restCreate(objectPlural: string, data: Record<string, any>): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/rest/${objectPlural}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json() as any;
+    if (json.error || json.statusCode >= 400) {
+      throw new Error(json.messages?.join(', ') || json.error || 'REST create failed');
+    }
+    return json.data;
+  }
+
+  async restUpdate(objectPlural: string, id: string, data: Record<string, any>): Promise<any> {
+    const res = await fetch(`${this.baseUrl}/rest/${objectPlural}/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json() as any;
+    if (json.error || json.statusCode >= 400) {
+      throw new Error(json.messages?.join(', ') || json.error || 'REST update failed');
+    }
+    return json.data;
+  }
+
   async createPerson(person: Person): Promise<Person> {
     const mutation = `
       mutation CreatePerson($data: PersonCreateInput!) {
@@ -929,6 +962,7 @@ export class TwentyClient {
                 isNullable
                 isSystem
                 defaultValue
+                options
                 createdAt
                 updatedAt
               }
@@ -998,6 +1032,7 @@ export class TwentyClient {
                   isNullable
                   isSystem
                   defaultValue
+                  options
                   createdAt
                   updatedAt
                 }

@@ -118,9 +118,13 @@ export function registerMetadataTools(server: McpServer, client: TwentyClient) {
           const nullableText = field.isNullable ? '(optional)' : '(required)';
           const defaultText = field.defaultValue ? ` [default: ${field.defaultValue}]` : '';
           
-          return `  ${customIcon} **${field.label}** (${field.name})
+          let fieldEntry = `  ${customIcon} **${field.label}** (${field.name})
     Type: ${field.type} ${nullableText}${defaultText}
     ${field.description ? `Description: ${field.description}` : 'No description'}`;
+          if (field.options && Array.isArray(field.options) && field.options.length > 0) {
+            fieldEntry += `\n    Options: ${field.options.map((o: any) => `${o.label} (${o.value})`).join(', ')}`;
+          }
+          return fieldEntry;
         }).join('\n\n');
 
         const content = `# ${object.labelSingular} Schema
@@ -228,8 +232,11 @@ ${fieldList}
             if (field.defaultValue) {
               content += `  Default: ${field.defaultValue}\n`;
             }
+            if (field.options && Array.isArray(field.options) && field.options.length > 0) {
+              content += `  Options: ${field.options.map((o: any) => `${o.label} (${o.value})`).join(', ')}\n`;
+            }
           });
-          
+
           content += '\n';
         });
 

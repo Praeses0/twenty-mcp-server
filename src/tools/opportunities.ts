@@ -15,9 +15,10 @@ export function registerOpportunityTools(server: McpServer, client: TwentyClient
       stage: z.string().optional().describe('Sales stage (e.g., NEW, SCREENING, MEETING, PROPOSAL, CUSTOMER)'),
       closeDate: z.string().optional().describe('Expected close date (ISO 8601 format)'),
       companyId: z.string().optional().describe('ID of associated company'),
-      pointOfContactId: z.string().optional().describe('ID of main contact person')
+      pointOfContactId: z.string().optional().describe('ID of main contact person'),
+      customFields: z.record(z.string(), z.any()).optional().describe('Custom fields as key-value pairs'),
     },
-    async ({ name, amount, stage, closeDate, companyId, pointOfContactId }) => {
+    async ({ name, amount, stage, closeDate, companyId, pointOfContactId, customFields }) => {
       try {
         const opportunityData: any = { name };
         
@@ -32,9 +33,22 @@ export function registerOpportunityTools(server: McpServer, client: TwentyClient
         if (closeDate) opportunityData.closeDate = closeDate;
         if (companyId) opportunityData.companyId = companyId;
         if (pointOfContactId) opportunityData.pointOfContactId = pointOfContactId;
-        
+        // Use REST API when custom fields are present
+        if (customFields && Object.keys(customFields).length > 0) {
+          Object.assign(opportunityData, customFields);
+          const result = await client.restCreate('opportunities', opportunityData);
+          const o = result.createOpportunity || result;
+          return {
+            content: [{
+              type: 'text',
+              text: `Created opportunity: ${name} (ID: ${o.id})`
+            }],
+            data: o
+          };
+        }
+
         const opportunity = await client.createOpportunity(opportunityData);
-        
+
         return {
           content: [{
             type: 'text',
@@ -115,7 +129,8 @@ Contact ID: ${opportunity.pointOfContactId || 'None'}`
       stage: z.string().optional().describe('Sales stage'),
       closeDate: z.string().optional().describe('Expected close date'),
       companyId: z.string().optional().describe('ID of associated company'),
-      pointOfContactId: z.string().optional().describe('ID of main contact person')
+      pointOfContactId: z.string().optional().describe('ID of main contact person'),
+      customFields: z.record(z.string(), z.any()).optional().describe('Custom fields as key-value pairs'),
     },
     async (input) => {
       try {
@@ -132,7 +147,20 @@ Contact ID: ${opportunity.pointOfContactId || 'None'}`
         if (input.closeDate) updateData.closeDate = input.closeDate;
         if (input.companyId) updateData.companyId = input.companyId;
         if (input.pointOfContactId) updateData.pointOfContactId = input.pointOfContactId;
-        
+        // Use REST API when custom fields are present
+        if (input.customFields && Object.keys(input.customFields).length > 0) {
+          Object.assign(updateData, input.customFields);
+          const result = await client.restUpdate('opportunities', input.id, updateData);
+          const o = result.updateOpportunity || result;
+          return {
+            content: [{
+              type: 'text',
+              text: `Updated opportunity: ${o.name || input.name || 'Updated'} (ID: ${input.id})`
+            }],
+            data: o
+          };
+        }
+
         const opportunity = await client.updateOpportunity({
           id: input.id,
           ...updateData
