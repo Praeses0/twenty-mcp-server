@@ -1,66 +1,55 @@
 # Changelog
 
-All notable changes to Twenty MCP Server will be documented in this file.
+All notable changes to this fork of Twenty MCP Server will be documented in this file.
 
-## [1.3.0] - 2026-01-12
+## [2.0.0] - 2026-03-18 (v1.19 Fork)
 
-### 🎉 Added
-- **Docker MCP Support**: Now available on [Docker Hub MCP Registry](https://hub.docker.com/mcp)!
-  - Install via Docker Desktop MCP Catalog
-  - Or use `docker mcp install twenty-mcp`
-  - Configuration files in `docker-mcp/` directory
+Forked from [jezweb/twenty-mcp v1.3.0](https://github.com/jezweb/twenty-mcp) and patched for **Twenty CRM v1.19.0 self-hosted** compatibility.
 
-### 🔒 Security
-- Updated MCP SDK to latest version (security fixes)
-- Fixed all npm audit vulnerabilities (was 7, now 0)
-- Updated body-parser, js-yaml, qs, and tmp dependencies
+### Breaking Changes (from upstream)
+- Removed `npx twenty-mcp-server` CLI setup wizard (use git clone + manual config instead)
+- Changed package name scope for fork publication
 
-### 📚 Documentation
-- Added Docker MCP installation option to README
-- Updated installation comparison table
+### Fixed (Twenty v1.19 Compatibility)
+- **UUID type mismatch**: All mutations now use `UUID!` instead of `ID!`/`String!` for ID parameters
+- **bodyV2 migration**: Tasks and notes use `bodyV2 { blocknote }` instead of removed `body` field
+- **Metadata API**: Schema discovery uses `/metadata` GraphQL endpoint with `paging` parameter instead of nonexistent REST endpoints
+- **Pagination**: Removed `skip` parameter from opportunity search (v1.19 is cursor-based only)
+- **Comments**: `create_comment` creates a Note as workaround (v1.19 has no `CommentCreateInput`)
+- **Singular queries**: Changed `company()`/`person()` to `companies()`/`people()` with edges/node pattern
+- **Contact updates**: `update_contact` now correctly transforms flat fields (`phone`, `email`, `firstName`, etc.) to Twenty's nested GraphQL structure
+- **SELECT options**: Auto-adds `position` field to options (required by v1.19, not documented)
+- **Relation payloads**: Uses correct field names (`targetObjectMetadataId`, `targetFieldLabel`, `targetFieldIcon`)
 
-### 🔧 Technical Improvements
-- Repository unarchived and refreshed for continued maintenance
+### Added
+- **7 schema management tools** (new in this fork):
+  - `create_custom_object` — define new entity types
+  - `update_custom_object` — modify object metadata
+  - `delete_custom_object` — remove custom objects
+  - `create_custom_field` — add fields (TEXT, NUMBER, SELECT, BOOLEAN, etc.)
+  - `update_custom_field` — modify field metadata
+  - `delete_custom_field` — remove fields
+  - `create_relation_field` — link objects (ONE_TO_MANY, MANY_TO_ONE, MANY_TO_MANY)
+- Metadata GraphQL client (`/metadata` endpoint) separate from data GraphQL client (`/graphql`)
+- String-to-JSON parsing for `options` parameter (handles MCP SDK string serialization)
 
-## [1.2.0] - 2025-06-24
+### Tool Count
+- Upstream: 29 tools (10 passing on v1.19)
+- This fork: **36 tools, all passing on v1.19.0**
 
-### 🎉 Added
-- **npx Support**: Try Twenty MCP Server instantly without installation!
-  - Run `npx twenty-mcp-server setup` to get started immediately
-  - No global installation required - perfect for evaluation
-  - Configuration automatically persists between npx runs
-  - Smart context detection for npx vs global installation
-  
-### 🚀 Features
-- Execution context detection system (npx/global/local)
-- Context-aware CLI messaging and headers
-- npx-specific welcome messages and onboarding
-- Performance tips for first-time npx users
-- Clear migration path from npx to global installation
-- Optimized package size (114.5 KB) for fast npx downloads
+---
 
-### 📚 Documentation
-- README now prominently features npx as the quickest way to try
-- Added npx examples throughout documentation
-- IDE configuration notes for npx users
-- Installation comparison table with npx option
+## Upstream Changelog
 
-### 🔧 Technical Improvements
-- Created `src/cli/utils/execution-context.ts` for context detection
-- Created `src/cli/utils/npx-helpers.ts` for npx-specific utilities
-- Updated CLI entry point with context awareness
-- Enhanced setup wizard with npx-specific guidance
-- Smart postinstall script that detects execution context
+### [1.3.0] - 2026-01-12 (upstream)
+- Docker MCP support
+- Security updates (npm audit fixes)
 
-### 🐛 Bug Fixes
-- None in this release
+### [1.2.0] - 2025-06-24 (upstream)
+- npx instant trial support
+- Execution context detection
 
-### 💔 Breaking Changes
-- None - full backward compatibility maintained
-
-## [1.1.0] - Previous Release
-
+### [1.1.0] (upstream)
 - Initial OAuth 2.1 implementation
-- IP address protection features
+- IP address protection
 - Enhanced setup wizard
-- Cross-platform compatibility improvements

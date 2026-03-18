@@ -1,168 +1,116 @@
-# MCP Server Setup Guide
+# MCP Server Setup Guide (v1.19 Fork)
 
-The Twenty MCP Server supports both traditional API key authentication and OAuth 2.1 authentication. Choose the setup method that best fits your needs.
+This fork is designed for **Twenty CRM v1.19.0 self-hosted** instances. It runs as a stdio MCP server, meaning it communicates directly with your MCP client (Claude Code, Claude Desktop, etc.) over standard input/output.
 
-## Authentication Options
+## Quick Setup
 
-### 🔑 API Key Mode (Simple)
-- Single API key for all users
-- Quick setup for personal use
-- Configuration via environment variables
+### 1. Clone and Build
 
-### 🔐 OAuth Mode (Advanced)
-- User-specific encrypted API keys
-- Multi-user support
-- Enhanced security with Clerk authentication
-- See [OAUTH.md](OAUTH.md) for detailed setup
-
-## Option 0: Docker MCP (Recommended for Docker Desktop Users)
-
-The easiest way to get started if you have Docker Desktop with MCP Toolkit enabled.
-
-### Via Docker Desktop UI
-1. Open Docker Desktop
-2. Go to **MCP Catalog**
-3. Search for "Twenty CRM"
-4. Click **Install**
-5. Configure your API key and base URL when prompted
-
-### Via Docker CLI
 ```bash
-docker mcp install twenty-mcp
+git clone https://github.com/Praeses0/twenty-mcp-server.git ~/Projects/twenty-mcp-server
+cd ~/Projects/twenty-mcp-server
+npm install
+npm run build
 ```
 
-When prompted, enter:
-- **TWENTY_API_KEY**: Your API key from Twenty CRM (Settings → Developers → API & Webhooks)
-- **TWENTY_BASE_URL**: Your Twenty instance URL (e.g., `https://api.twenty.com`)
+### 2. Get Your API Key
 
-## Option 1: Claude Desktop App
+1. Log into your Twenty CRM instance
+2. Go to **Settings > API & Webhooks**
+3. Click **Generate API Key**
+4. Copy the key immediately (it's only shown once)
 
-1. Copy this configuration to your Claude Desktop config file:
-   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-   - Linux: `~/.config/Claude/claude_desktop_config.json`
+### 3. Configure Your MCP Client
 
-2. Add this to the config:
+#### Claude Code (`~/.claude.json`)
+
+Add under the `mcpServers` key:
+
+```json
+"twenty-crm": {
+  "type": "stdio",
+  "command": "node",
+  "args": ["/absolute/path/to/twenty-mcp-server/dist/index.js"],
+  "env": {
+    "TWENTY_API_KEY": "your-api-key",
+    "TWENTY_BASE_URL": "https://your-twenty-instance.com",
+    "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+  }
+}
+```
+
+#### Claude Desktop
+
+Add to your config file:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
 ```json
 {
   "mcpServers": {
-    "twenty": {
+    "twenty-crm": {
       "command": "node",
-      "args": ["/home/jez/claude/twenty-mcp/dist/index.js"],
+      "args": ["/absolute/path/to/twenty-mcp-server/dist/index.js"],
       "env": {
-        "TWENTY_API_KEY": "your-api-key-here",
-        "TWENTY_BASE_URL": "https://twenty.app.jezweb.com"
+        "TWENTY_API_KEY": "your-api-key",
+        "TWENTY_BASE_URL": "https://your-twenty-instance.com"
       }
     }
   }
 }
 ```
 
-3. Restart Claude Desktop
+#### Cursor / Cline / Other MCP Clients
 
-### OAuth Configuration (Advanced)
+Same pattern — point `command` to `node` and `args` to your `dist/index.js` with the environment variables.
 
-For OAuth-enabled setup, configure the HTTP server instead:
+### 4. Restart and Verify
 
-```json
-{
-  "mcpServers": {
-    "twenty": {
-      "command": "node",
-      "args": ["/home/jez/claude/twenty-mcp/dist/http-server.js"],
-      "env": {
-        "AUTH_ENABLED": "true",
-        "CLERK_SECRET_KEY": "sk_test_your_clerk_secret_key",
-        "CLERK_PUBLISHABLE_KEY": "pk_test_your_clerk_publishable_key",
-        "API_KEY_ENCRYPTION_SECRET": "your-32-byte-encryption-secret",
-        "PORT": "3000"
-      }
-    }
-  }
-}
+Restart your MCP client, then try:
+
+```
+"List all companies in my CRM"
+"Show me the company schema"
+"Create a custom object called Vehicle"
 ```
 
-Then connect to the HTTP endpoint with Bearer authentication:
-- URL: `http://localhost:3000/mcp`
-- Authentication: Bearer token from OAuth flow
-- See [OAUTH.md](OAUTH.md) for complete setup
+## Environment Variables
 
-## Option 2: VS Code Extension
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TWENTY_API_KEY` | yes | Your Twenty CRM API key (JWT format) |
+| `TWENTY_BASE_URL` | yes | Your Twenty instance URL, no trailing slash |
+| `NODE_TLS_REJECT_UNAUTHORIZED` | no | Set to `0` for self-signed certificates |
 
-### API Key Mode
-1. Start the server: `npm run dev:http`
-2. Connect to: `http://localhost:3000/mcp?apiKey=YOUR_API_KEY&baseUrl=https://twenty.app.jezweb.com`
+## Self-Signed Certificates
 
-### OAuth Mode
-1. Set up OAuth: `npm run setup:oauth`
-2. Start the server: `npm start`
-3. Connect with Bearer authentication
-4. Configure API keys via `/api/keys` endpoint
+If your Twenty instance uses a self-signed or internal CA certificate, set `NODE_TLS_REJECT_UNAUTHORIZED=0` in the env config. This disables TLS certificate verification for the MCP server process only.
 
-## Option 3: Test Client
+## Troubleshooting
 
-### API Key Mode
+**"TWENTY_API_KEY environment variable is required"**
+- Check that your `env` block in the MCP config has the correct key name and value.
+
+**"401 Unauthorized"**
+- Your API key may have expired. Generate a new one in Twenty Settings.
+
+**"fetch failed" or connection errors**
+- Verify `TWENTY_BASE_URL` is correct and reachable from your machine.
+- For self-signed certs, add `NODE_TLS_REJECT_UNAUTHORIZED=0`.
+
+**Tools not showing up**
+- Make sure `dist/index.js` exists (run `npm run build`).
+- Use an absolute path, not relative.
+- Restart your MCP client after config changes.
+
+## HTTP Server Mode (Advanced)
+
+For multi-user or web integration deployments, the server can also run in HTTP mode:
+
 ```bash
-# Load environment variables and run test
-source .env && node test-mcp-client.js
+TWENTY_API_KEY=your-key TWENTY_BASE_URL=https://your-instance npm start
+# Server at http://localhost:3000/mcp
 ```
 
-### OAuth Mode
-```bash
-# Test OAuth flow
-npm run test:oauth
-
-# Interactive OAuth examples
-node examples/oauth-client.js
-open examples/oauth-web-example.html
-```
-
-## Option 4: Using npx
-
-### API Key Mode
-```bash
-TWENTY_API_KEY=your-key TWENTY_BASE_URL=https://twenty.app.jezweb.com npx -y @modelcontextprotocol/inspector dist/index.js
-```
-
-### OAuth Mode
-```bash
-# Set up OAuth first
-npm run setup:oauth
-
-# Run with OAuth enabled
-AUTH_ENABLED=true npm start
-
-# Then use MCP Inspector with Bearer authentication
-```
-
-This will open the MCP Inspector in your browser for interactive testing.
-
-## Quick Setup Commands
-
-### For API Key Mode
-```bash
-# Clone and set up with API key
-git clone https://github.com/jezweb/twenty-mcp.git
-cd twenty-mcp
-npm install && npm run build
-cp .env.example .env
-# Edit .env with your API key
-npm start
-```
-
-### For OAuth Mode
-```bash
-# Clone and set up with OAuth
-git clone https://github.com/jezweb/twenty-mcp.git
-cd twenty-mcp
-npm install && npm run build
-npm run setup:oauth  # Interactive OAuth setup
-npm start
-```
-
-## Next Steps
-
-- **API Key Mode**: Add your Twenty API key to `.env` and start using
-- **OAuth Mode**: Complete Clerk setup and configure user API keys via `/api/keys`
-- **Documentation**: See [OAUTH.md](OAUTH.md) for detailed OAuth guide
-- **Examples**: Check the `examples/` directory for integration examples
+See [OAUTH.md](OAUTH.md) for OAuth 2.1 authentication setup in HTTP mode.

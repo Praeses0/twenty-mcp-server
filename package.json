@@ -1,7 +1,7 @@
 {
   "name": "twenty-mcp-server",
-  "version": "1.3.0",
-  "description": "Easy-to-install Model Context Protocol server for Twenty CRM. Try instantly with 'npx twenty-mcp-server setup' or install globally for permanent use.",
+  "version": "2.0.0",
+  "description": "MCP server for Twenty CRM (v1.19 self-hosted fork). 36 tools for contacts, companies, opportunities, tasks, notes, activities, relationships, schema discovery, and schema management.",
   "main": "dist/http-server.js",
   "module": "./src/http-server.ts",
   "type": "module",

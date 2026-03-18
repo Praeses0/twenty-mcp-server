@@ -1,6 +1,8 @@
 # Twenty MCP Server on Smithery
 
-This guide explains how to deploy and use the Twenty MCP Server on [Smithery](https://smithery.ai), the platform for AI-native services.
+> **Note:** This Smithery guide is from the upstream project (jezweb/twenty-mcp) and references the npm-published package. This fork is designed for git clone installation against Twenty v1.19.0 self-hosted instances. See the main [README](README.md) for setup instructions.
+
+This guide explains how to deploy and use the upstream Twenty MCP Server on [Smithery](https://smithery.ai), the platform for AI-native services.
 
 ## What is Smithery?
 
@@ -59,7 +61,7 @@ If you want to deploy a customized version:
    This will:
    - Start the server locally
    - Open a playground for testing
-   - Allow you to configure and test all 29 tools
+   - Allow you to configure and test all 36 tools
 
 4. **Deploy to Smithery**
    ```bash
@@ -91,7 +93,7 @@ The Twenty MCP Server accepts configuration through Smithery's UI:
 When deployed on Smithery, you get:
 
 ### 🎮 Interactive Playground
-- Test all 29 tools without IDE setup
+- Test all 36 tools without IDE setup
 - See real-time results
 - Validate your configuration
 
@@ -112,7 +114,7 @@ When deployed on Smithery, you get:
 
 ## Available Tools
 
-The server provides 29 tools across 8 categories:
+The server provides 36 tools across 8 categories:
 
 - **Contact Management** (4 tools)
 - **Company Management** (4 tools)

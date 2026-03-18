@@ -251,4 +251,295 @@ ${fieldList}
       }
     }
   );
+
+  // Schema Management Tools
+
+  server.tool(
+    'create_custom_object',
+    'Create a new custom object (entity type) in Twenty CRM. This defines a new table/entity like "Vehicle", "Project", etc.',
+    {
+      nameSingular: z.string().describe('Singular name in camelCase (e.g. "vehicle", "dealerContact")'),
+      namePlural: z.string().describe('Plural name in camelCase (e.g. "vehicles", "dealerContacts")'),
+      labelSingular: z.string().describe('Human-readable singular label (e.g. "Vehicle", "Dealer Contact")'),
+      labelPlural: z.string().describe('Human-readable plural label (e.g. "Vehicles", "Dealer Contacts")'),
+      description: z.string().optional().describe('Description of the object'),
+      icon: z.string().optional().describe('Icon name from Tabler icons (e.g. "IconCar", "IconUser")'),
+    },
+    async (args) => {
+      try {
+        const result = await client.createCustomObject(args);
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Custom object created: ${result.labelSingular} (${result.nameSingular})\n` +
+                  `ID: ${result.id}\n` +
+                  `Plural: ${result.labelPlural} (${result.namePlural})\n` +
+                  `Active: ${result.isActive}\n` +
+                  (result.description ? `Description: ${result.description}` : '')
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Error creating custom object: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }]
+        };
+      }
+    }
+  );
+
+  server.tool(
+    'update_custom_object',
+    'Update an existing custom object (change label, description, icon, or deactivate it)',
+    {
+      objectName: z.string().describe('Object name (singular or plural) or UUID to update'),
+      labelSingular: z.string().optional().describe('New singular label'),
+      labelPlural: z.string().optional().describe('New plural label'),
+      description: z.string().optional().describe('New description'),
+      icon: z.string().optional().describe('New icon name'),
+      isActive: z.boolean().optional().describe('Set active/inactive'),
+    },
+    async (args) => {
+      try {
+        const { objectName, ...update } = args;
+
+        // Resolve name to ID
+        let objectId = objectName;
+        if (!objectName.match(/^[0-9a-fA-F-]{36}$/)) {
+          const schema = await client.getObjectSchema(objectName);
+          objectId = schema.object.id;
+        }
+
+        const result = await client.updateCustomObject(objectId, update);
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Object updated: ${result.labelSingular} (${result.nameSingular})\n` +
+                  `ID: ${result.id}\n` +
+                  `Active: ${result.isActive}`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Error updating object: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }]
+        };
+      }
+    }
+  );
+
+  server.tool(
+    'delete_custom_object',
+    'Delete a custom object. WARNING: This permanently removes the object and all its data.',
+    {
+      objectName: z.string().describe('Object name (singular or plural) or UUID to delete'),
+    },
+    async (args) => {
+      try {
+        let objectId = args.objectName;
+        if (!args.objectName.match(/^[0-9a-fA-F-]{36}$/)) {
+          const schema = await client.getObjectSchema(args.objectName);
+          objectId = schema.object.id;
+        }
+
+        const result = await client.deleteCustomObject(objectId);
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Object deleted: ${result.nameSingular} (ID: ${result.id})`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Error deleting object: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }]
+        };
+      }
+    }
+  );
+
+  server.tool(
+    'create_custom_field',
+    'Add a new field to an existing object. Supported types: TEXT, NUMBER, BOOLEAN, DATE_TIME, DATE, PHONE, EMAIL, CURRENCY, LINK, LINKS, ADDRESS, RATING, SELECT, MULTI_SELECT, RICH_TEXT, POSITION, RAW_JSON.',
+    {
+      objectName: z.string().describe('Object name (singular or plural) or UUID to add the field to'),
+      name: z.string().describe('Field name in camelCase (e.g. "vinNumber", "estimatedValue")'),
+      label: z.string().describe('Human-readable label (e.g. "VIN Number", "Estimated Value")'),
+      type: z.enum([
+        'TEXT', 'NUMBER', 'BOOLEAN', 'DATE_TIME', 'DATE', 'PHONE', 'EMAIL',
+        'CURRENCY', 'LINK', 'LINKS', 'ADDRESS', 'RATING', 'SELECT',
+        'MULTI_SELECT', 'RICH_TEXT', 'POSITION', 'RAW_JSON'
+      ]).describe('Field data type'),
+      description: z.string().optional().describe('Field description'),
+      icon: z.string().optional().describe('Icon name'),
+      isNullable: z.boolean().optional().default(true).describe('Whether the field can be empty'),
+      defaultValue: z.any().optional().describe('Default value (JSON)'),
+      options: z.any().optional().describe('Options for SELECT/MULTI_SELECT fields (JSON array of {label, value, color})'),
+    },
+    async (args) => {
+      try {
+        const { objectName, ...fieldInput } = args;
+
+        // Resolve name to ID
+        let objectId = objectName;
+        if (!objectName.match(/^[0-9a-fA-F-]{36}$/)) {
+          const schema = await client.getObjectSchema(objectName);
+          objectId = schema.object.id;
+        }
+
+        const result = await client.createCustomField({
+          ...fieldInput,
+          objectMetadataId: objectId,
+        });
+
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Field created: ${result.label} (${result.name})\n` +
+                  `ID: ${result.id}\n` +
+                  `Type: ${result.type}\n` +
+                  `Object: ${objectName}\n` +
+                  `Nullable: ${result.isNullable}`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Error creating field: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }]
+        };
+      }
+    }
+  );
+
+  server.tool(
+    'update_custom_field',
+    'Update an existing field (change label, description, icon, default value, or deactivate it)',
+    {
+      fieldId: z.string().describe('Field UUID to update'),
+      label: z.string().optional().describe('New label'),
+      description: z.string().optional().describe('New description'),
+      icon: z.string().optional().describe('New icon'),
+      isActive: z.boolean().optional().describe('Set active/inactive'),
+      defaultValue: z.any().optional().describe('New default value (JSON)'),
+      options: z.any().optional().describe('Updated options for SELECT/MULTI_SELECT fields'),
+    },
+    async (args) => {
+      try {
+        const { fieldId, ...update } = args;
+        const result = await client.updateCustomField(fieldId, update);
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Field updated: ${result.label} (${result.name})\n` +
+                  `ID: ${result.id}\n` +
+                  `Type: ${result.type}\n` +
+                  `Active: ${result.isActive}`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Error updating field: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }]
+        };
+      }
+    }
+  );
+
+  server.tool(
+    'delete_custom_field',
+    'Delete a custom field. WARNING: This permanently removes the field and its data from all records.',
+    {
+      fieldId: z.string().describe('Field UUID to delete'),
+    },
+    async (args) => {
+      try {
+        const result = await client.deleteCustomField(args.fieldId);
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Field deleted: ${result.name} (ID: ${result.id})`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Error deleting field: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }]
+        };
+      }
+    }
+  );
+
+  server.tool(
+    'create_relation_field',
+    'Create a relation between two objects (e.g. link Vehicles to Companies). Creates fields on both objects.',
+    {
+      fromObjectName: z.string().describe('Source object name (singular or plural) or UUID'),
+      fromFieldName: z.string().describe('Field name on source object in camelCase (e.g. "company")'),
+      fromFieldLabel: z.string().describe('Field label on source object (e.g. "Company")'),
+      toObjectName: z.string().describe('Target object name (singular or plural) or UUID'),
+      toFieldName: z.string().describe('Field name on target object in camelCase (e.g. "vehicles")'),
+      toFieldLabel: z.string().describe('Field label on target object (e.g. "Vehicles")'),
+      relationType: z.enum(['ONE_TO_MANY', 'MANY_TO_ONE', 'MANY_TO_MANY']).describe('Relation type'),
+      description: z.string().optional().describe('Description of the relation'),
+      icon: z.string().optional().describe('Icon for the source field'),
+      toIcon: z.string().optional().describe('Icon for the target field'),
+    },
+    async (args) => {
+      try {
+        // Resolve object names to IDs
+        let fromObjectId = args.fromObjectName;
+        if (!args.fromObjectName.match(/^[0-9a-fA-F-]{36}$/)) {
+          const schema = await client.getObjectSchema(args.fromObjectName);
+          fromObjectId = schema.object.id;
+        }
+
+        let toObjectId = args.toObjectName;
+        if (!args.toObjectName.match(/^[0-9a-fA-F-]{36}$/)) {
+          const schema = await client.getObjectSchema(args.toObjectName);
+          toObjectId = schema.object.id;
+        }
+
+        const result = await client.createRelationField({
+          objectMetadataId: fromObjectId,
+          name: args.fromFieldName,
+          label: args.fromFieldLabel,
+          description: args.description,
+          icon: args.icon,
+          relationType: args.relationType,
+          targetObjectMetadataId: toObjectId,
+          targetFieldLabel: args.toFieldLabel,
+          targetFieldIcon: args.toIcon,
+        });
+
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Relation created: ${args.fromFieldLabel} ↔ ${args.toFieldLabel}\n` +
+                  `Type: ${args.relationType}\n` +
+                  `From: ${args.fromObjectName}.${args.fromFieldName}\n` +
+                  `To: ${args.toObjectName}.${args.toFieldName}\n` +
+                  `Field ID: ${result.id}`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: 'text' as const,
+            text: `Error creating relation: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }]
+        };
+      }
+    }
+  );
 }

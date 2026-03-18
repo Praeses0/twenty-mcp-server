@@ -1,6 +1,6 @@
-# Contributing to Twenty MCP Server
+# Contributing to Twenty MCP Server (v1.19 Fork)
 
-Thank you for your interest in contributing to the Twenty MCP Server! This guide will help you get started with contributing to the project.
+Thank you for your interest in contributing to this fork of Twenty MCP Server, patched for Twenty v1.19.0 self-hosted instances.
 
 ## Table of Contents
 

@@ -1,6 +1,6 @@
-# Testing Guide for Twenty MCP Server
+# Testing Guide for Twenty MCP Server (v1.19 Fork)
 
-This document describes the testing infrastructure and how to run tests for the Twenty MCP Server.
+This document describes the testing infrastructure and how to run tests. This fork targets **Twenty v1.19.0 self-hosted** — all 36 tools have been verified against a live v1.19 instance.
 
 ## Test Suites
 

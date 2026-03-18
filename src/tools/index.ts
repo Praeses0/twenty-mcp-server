@@ -105,7 +105,23 @@ export function registerPersonTools(server: McpServer, client: TwentyClient) {
     },
     async (args) => {
     try {
-      const { id, ...updates } = args;
+      const { id, firstName, lastName, email, phone, companyId, jobTitle, linkedinUrl, city } = args;
+
+      // Transform flat input to Twenty's nested structure
+      const updates: any = {};
+      if (firstName || lastName) {
+        updates.name = {
+          ...(firstName && { firstName }),
+          ...(lastName && { lastName }),
+        };
+      }
+      if (email) updates.emails = { primaryEmail: email };
+      if (phone) updates.phones = { primaryPhoneNumber: phone };
+      if (companyId) updates.companyId = companyId;
+      if (jobTitle) updates.jobTitle = jobTitle;
+      if (linkedinUrl) updates.linkedinLink = { primaryLinkUrl: linkedinUrl };
+      if (city) updates.city = city;
+
       const person = await client.updatePerson(id, updates);
       return {
         content: [{

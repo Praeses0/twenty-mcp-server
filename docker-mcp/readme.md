@@ -1,6 +1,8 @@
-# Twenty CRM MCP Server
+# Twenty CRM MCP Server (Docker)
 
-A Model Context Protocol (MCP) server that provides seamless integration with the Twenty CRM API, enabling LLM agents to interact with your CRM data through 29 well-defined, typed tools.
+> **Note:** This Docker configuration is from the upstream project. It may work with this fork but has not been tested against Twenty v1.19.0 self-hosted. For the recommended setup, see the main [README](../README.md).
+
+A Model Context Protocol (MCP) server that provides seamless integration with the Twenty CRM API, enabling LLM agents to interact with your CRM data through 36 well-defined, typed tools.
 
 ## Features
 

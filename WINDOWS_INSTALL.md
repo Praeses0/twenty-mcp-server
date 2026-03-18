@@ -1,6 +1,6 @@
-# Windows Installation Guide for Twenty MCP Server
+# Windows Installation Guide for Twenty MCP Server (v1.19 Fork)
 
-This guide provides detailed instructions for Windows users to install and configure the Twenty MCP Server.
+This guide provides detailed instructions for Windows users to install and configure this fork of Twenty MCP Server for use with Twenty v1.19.0 self-hosted instances.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ Git Bash provides a Linux-like environment on Windows, making it compatible with
 2. **Clone and install**:
 ```bash
 # Clone the repository
-git clone https://github.com/jezweb/twenty-mcp.git
+git clone https://github.com/Praeses0/twenty-mcp-server.git twenty-mcp-server
 cd twenty-mcp
 
 # Make install script executable
@@ -46,7 +46,7 @@ If you prefer using Windows Command Prompt:
 
 2. **Clone the repository**:
 ```cmd
-git clone https://github.com/jezweb/twenty-mcp.git
+git clone https://github.com/Praeses0/twenty-mcp-server.git twenty-mcp-server
 cd twenty-mcp
 ```
 
@@ -71,7 +71,7 @@ For PowerShell users:
 
 2. **Clone and install**:
 ```powershell
-git clone https://github.com/jezweb/twenty-mcp.git
+git clone https://github.com/Praeses0/twenty-mcp-server.git twenty-mcp-server
 cd twenty-mcp
 npm install
 npm run build
