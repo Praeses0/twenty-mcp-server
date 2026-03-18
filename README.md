@@ -24,41 +24,46 @@ The upstream MCP server targets Twenty Cloud and newer versions. Self-hosted Twe
 | Relation payloads | `toObjectMetadataId` / `toLabel` | `targetObjectMetadataId` / `targetFieldLabel` |
 | Schema management | Not supported | 7 new tools for custom objects, fields, and relations |
 
-**Result: 36 tools, all passing on Twenty v1.19.0.**
+**Result: 41 tools, all passing on Twenty v1.19.0.**
 
-## Tools (36)
+## Tools (41)
 
-### Contacts (4)
+### Contacts (5)
 | Tool | Description |
 |------|-------------|
 | `create_contact` | Create a person with name, email, phone, company, job title |
 | `get_contact` | Retrieve a contact by ID |
 | `update_contact` | Update any contact field (name, email, phone, company, etc.) |
+| `delete_contact` | Delete a contact |
 | `search_contacts` | Search by name or email |
 
-### Companies (4)
+### Companies (5)
 | Tool | Description |
 |------|-------------|
 | `create_company` | Create with name, domain, address, employees, revenue |
 | `get_company` | Retrieve a company by ID |
 | `update_company` | Update any company field |
+| `delete_company` | Delete a company |
 | `search_companies` | Search by name or domain |
 
-### Opportunities (5)
+### Opportunities (6)
 | Tool | Description |
 |------|-------------|
 | `create_opportunity` | Create a deal with amount, stage, company, contact |
 | `get_opportunity` | Retrieve an opportunity by ID |
 | `update_opportunity` | Update stage, amount, dates, linked entities |
+| `delete_opportunity` | Delete an opportunity |
 | `search_opportunities` | Filter by name, stage, amount range, date range, company |
 | `list_opportunities_by_stage` | Pipeline view grouped by sales stage with totals |
 
-### Tasks & Notes (3)
+### Tasks & Notes (5)
 | Tool | Description |
 |------|-------------|
 | `create_task` | Create with title, body, status (TODO/IN_PROGRESS/DONE), assignee |
 | `get_tasks` | List all tasks |
+| `delete_task` | Delete a task |
 | `create_note` | Create a note with title and body |
+| `delete_note` | Delete a note |
 
 ### Activities (4)
 | Tool | Description |

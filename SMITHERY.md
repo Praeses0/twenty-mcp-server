@@ -61,7 +61,7 @@ If you want to deploy a customized version:
    This will:
    - Start the server locally
    - Open a playground for testing
-   - Allow you to configure and test all 36 tools
+   - Allow you to configure and test all 41 tools
 
 4. **Deploy to Smithery**
    ```bash
@@ -93,7 +93,7 @@ The Twenty MCP Server accepts configuration through Smithery's UI:
 When deployed on Smithery, you get:
 
 ### 🎮 Interactive Playground
-- Test all 36 tools without IDE setup
+- Test all 41 tools without IDE setup
 - See real-time results
 - Validate your configuration
 
@@ -114,7 +114,7 @@ When deployed on Smithery, you get:
 
 ## Available Tools
 
-The server provides 36 tools across 8 categories:
+The server provides 41 tools across 8 categories:
 
 - **Contact Management** (4 tools)
 - **Company Management** (4 tools)

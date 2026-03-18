@@ -1,7 +1,7 @@
 {
   "name": "twenty-mcp-server",
   "version": "2.0.0",
-  "description": "MCP server for Twenty CRM (v1.19 self-hosted fork). 36 tools for contacts, companies, opportunities, tasks, notes, activities, relationships, schema discovery, and schema management.",
+  "description": "MCP server for Twenty CRM (v1.19 self-hosted fork). 41 tools for full CRUD on contacts, companies, opportunities, tasks, notes, plus activities, relationships, schema discovery, and schema management.",
   "main": "dist/http-server.js",
   "module": "./src/http-server.ts",
   "type": "module",

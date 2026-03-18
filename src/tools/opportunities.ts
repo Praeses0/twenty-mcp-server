@@ -158,6 +158,33 @@ Contact ID: ${opportunity.pointOfContactId || 'None'}`
   );
 
   server.tool(
+    'delete_opportunity',
+    'Delete an opportunity from Twenty CRM',
+    {
+      id: z.string().describe('Opportunity ID to delete')
+    },
+    async ({ id }) => {
+      try {
+        const result = await client.deleteOpportunity(id);
+        return {
+          content: [{
+            type: 'text',
+            text: `Opportunity deleted (ID: ${result.id})`
+          }]
+        };
+      } catch (error: any) {
+        return {
+          content: [{
+            type: 'text',
+            text: `Failed to delete opportunity: ${error.message}`
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  server.tool(
     'search_opportunities',
     'Search for opportunities in Twenty CRM with various filters',
     {

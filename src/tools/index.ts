@@ -140,6 +140,31 @@ export function registerPersonTools(server: McpServer, client: TwentyClient) {
   });
 
   server.tool(
+    'delete_contact',
+    'Delete a contact (person) from Twenty CRM',
+    {
+      id: z.string().describe('Contact ID to delete'),
+    },
+    async (args) => {
+    try {
+      const result = await client.deletePerson(args.id);
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Contact deleted (ID: ${result.id})`
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error deleting contact: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }]
+      };
+    }
+  });
+
+  server.tool(
     'search_contacts',
     'Search for contacts in Twenty CRM',
     {
@@ -330,6 +355,31 @@ export function registerCompanyTools(server: McpServer, client: TwentyClient) {
   });
 
   server.tool(
+    'delete_company',
+    'Delete a company from Twenty CRM',
+    {
+      id: z.string().describe('Company ID to delete'),
+    },
+    async (args) => {
+    try {
+      const result = await client.deleteCompany(args.id);
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Company deleted (ID: ${result.id})`
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error deleting company: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }]
+      };
+    }
+  });
+
+  server.tool(
     'search_companies',
     'Search for companies in Twenty CRM',
     {
@@ -420,6 +470,31 @@ export function registerTaskTools(server: McpServer, client: TwentyClient) {
   });
 
   server.tool(
+    'delete_task',
+    'Delete a task from Twenty CRM',
+    {
+      id: z.string().describe('Task ID to delete'),
+    },
+    async (args) => {
+    try {
+      const result = await client.deleteTask(args.id);
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Task deleted (ID: ${result.id})`
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error deleting task: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }]
+      };
+    }
+  });
+
+  server.tool(
     'create_note',
     'Create a new note in Twenty CRM',
     {
@@ -441,6 +516,31 @@ export function registerTaskTools(server: McpServer, client: TwentyClient) {
         content: [{
           type: 'text' as const,
           text: `Error creating note: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }]
+      };
+    }
+  });
+
+  server.tool(
+    'delete_note',
+    'Delete a note from Twenty CRM',
+    {
+      id: z.string().describe('Note ID to delete'),
+    },
+    async (args) => {
+    try {
+      const result = await client.deleteNote(args.id);
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Note deleted (ID: ${result.id})`
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text' as const,
+          text: `Error deleting note: ${error instanceof Error ? error.message : 'Unknown error'}`
         }]
       };
     }

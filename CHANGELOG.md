@@ -22,6 +22,7 @@ Forked from [jezweb/twenty-mcp v1.3.0](https://github.com/jezweb/twenty-mcp) and
 - **Relation payloads**: Uses correct field names (`targetObjectMetadataId`, `targetFieldLabel`, `targetFieldIcon`)
 
 ### Added
+- **5 delete tools**: `delete_contact`, `delete_company`, `delete_opportunity`, `delete_task`, `delete_note`
 - **7 schema management tools** (new in this fork):
   - `create_custom_object` — define new entity types
   - `update_custom_object` — modify object metadata
@@ -35,7 +36,7 @@ Forked from [jezweb/twenty-mcp v1.3.0](https://github.com/jezweb/twenty-mcp) and
 
 ### Tool Count
 - Upstream: 29 tools (10 passing on v1.19)
-- This fork: **36 tools, all passing on v1.19.0**
+- This fork: **41 tools, all passing on v1.19.0**
 
 ---
 

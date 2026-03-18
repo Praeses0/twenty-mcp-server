@@ -131,6 +131,16 @@ export class TwentyClient {
     return result.updatePerson;
   }
 
+  async deletePerson(id: string): Promise<{ id: string }> {
+    const mutation = `
+      mutation DeletePerson($id: UUID!) {
+        deletePerson(id: $id) { id }
+      }
+    `;
+    const result = await this.client.request(mutation, { id }) as { deletePerson: { id: string } };
+    return result.deletePerson;
+  }
+
   async searchPeople(query: string, options: SearchOptions = {}): Promise<Person[]> {
     const searchQuery = `
       query SearchPeople($filter: PersonFilterInput, $first: Int, $after: String) {
@@ -300,6 +310,16 @@ export class TwentyClient {
     return result.updateCompany;
   }
 
+  async deleteCompany(id: string): Promise<{ id: string }> {
+    const mutation = `
+      mutation DeleteCompany($id: UUID!) {
+        deleteCompany(id: $id) { id }
+      }
+    `;
+    const result = await this.client.request(mutation, { id }) as { deleteCompany: { id: string } };
+    return result.deleteCompany;
+  }
+
   async searchCompanies(query: string, options: SearchOptions = {}): Promise<Company[]> {
     const searchQuery = `
       query SearchCompanies($filter: CompanyFilterInput, $first: Int, $after: String) {
@@ -406,6 +426,16 @@ export class TwentyClient {
     });
   }
 
+  async deleteTask(id: string): Promise<{ id: string }> {
+    const mutation = `
+      mutation DeleteTask($id: UUID!) {
+        deleteTask(id: $id) { id }
+      }
+    `;
+    const result = await this.client.request(mutation, { id }) as { deleteTask: { id: string } };
+    return result.deleteTask;
+  }
+
   async createNote(note: Note): Promise<Note> {
     const mutation = `
       mutation CreateNote($data: NoteCreateInput!) {
@@ -428,6 +458,16 @@ export class TwentyClient {
     const created = result.createNote;
     created.body = created.bodyV2?.blocknote || '';
     return created;
+  }
+
+  async deleteNote(id: string): Promise<{ id: string }> {
+    const mutation = `
+      mutation DeleteNote($id: UUID!) {
+        deleteNote(id: $id) { id }
+      }
+    `;
+    const result = await this.client.request(mutation, { id }) as { deleteNote: { id: string } };
+    return result.deleteNote;
   }
 
   async createOpportunity(opportunity: CreateOpportunityInput): Promise<Opportunity> {
@@ -505,6 +545,16 @@ export class TwentyClient {
 
     const result = await this.client.request(mutation, { id, data }) as { updateOpportunity: Opportunity };
     return result.updateOpportunity;
+  }
+
+  async deleteOpportunity(id: string): Promise<{ id: string }> {
+    const mutation = `
+      mutation DeleteOpportunity($id: UUID!) {
+        deleteOpportunity(id: $id) { id }
+      }
+    `;
+    const result = await this.client.request(mutation, { id }) as { deleteOpportunity: { id: string } };
+    return result.deleteOpportunity;
   }
 
   async searchOpportunities(input: SearchOpportunitiesInput): Promise<Opportunity[]> {

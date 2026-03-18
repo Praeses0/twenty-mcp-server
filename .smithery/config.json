@@ -1,7 +1,7 @@
 {
   "projectId": "twenty-mcp",
   "name": "Twenty MCP Server",
-  "description": "Connect AI assistants to Twenty CRM with 36 tools (v1.19 self-hosted fork)",
+  "description": "Connect AI assistants to Twenty CRM with 41 tools (v1.19 self-hosted fork)",
   "version": "2.0.0",
   "runtime": "typescript",
   "author": "jezweb",

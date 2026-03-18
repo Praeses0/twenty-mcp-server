@@ -1,6 +1,6 @@
 # Twenty MCP Server - Tool Reference
 
-This document provides detailed information about all **36 tools** available in this fork of Twenty MCP Server, patched for Twenty v1.19.0 self-hosted instances.
+This document provides detailed information about all **41 tools** available in this fork of Twenty MCP Server, patched for Twenty v1.19.0 self-hosted instances.
 
 ## Table of Contents
 
@@ -59,6 +59,14 @@ Updates an existing contact. All fields except `id` are optional — only send w
 
 > **v1.19 note:** This fork correctly maps flat fields to Twenty's nested GraphQL structure (`phone` -> `phones.primaryPhoneNumber`, `email` -> `emails.primaryEmail`, etc.).
 
+### delete_contact
+Deletes a contact.
+
+**Parameters:**
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | string | yes | Contact UUID |
+
 ### search_contacts
 Searches contacts by name or email.
 
@@ -98,6 +106,14 @@ Retrieves a company by ID.
 ### update_company
 Updates an existing company. Same parameters as `create_company` plus required `id`.
 
+### delete_company
+Deletes a company.
+
+**Parameters:**
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | string | yes | Company UUID |
+
 ### search_companies
 Searches companies by name or domain.
 
@@ -129,6 +145,14 @@ Retrieves an opportunity by ID.
 
 ### update_opportunity
 Updates an existing opportunity. Same parameters as `create_opportunity` plus required `id`.
+
+### delete_opportunity
+Deletes an opportunity.
+
+**Parameters:**
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | string | yes | Opportunity UUID |
 
 ### search_opportunities
 Search with filters.
@@ -214,6 +238,14 @@ Creates a new task.
 
 > **v1.19 note:** The `body` field is automatically converted to `bodyV2 { blocknote }` format.
 
+### delete_task
+Deletes a task.
+
+**Parameters:**
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | string | yes | Task UUID |
+
 ### get_tasks
 Lists tasks.
 
@@ -235,6 +267,14 @@ Creates a note.
 | `body` | string | yes | Note content (stored as BlockNote rich text internally) |
 | `title` | string | no | Note title |
 | `authorId` | string | no | Author UUID |
+
+### delete_note
+Deletes a note.
+
+**Parameters:**
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | string | yes | Note UUID |
 
 ---
 
