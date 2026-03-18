@@ -6,58 +6,41 @@ import { registerActivityTools } from './activities.js';
 import { registerMetadataTools } from './metadata.js';
 
 export function registerPersonTools(server: McpServer, client: TwentyClient) {
-  server.tool(
+  server.registerTool(
     'create_contact',
-    'Create a new contact (person) in Twenty CRM',
     {
-      firstName: z.string().describe('First name of the contact'),
-      lastName: z.string().describe('Last name of the contact'),
-      email: z.string().email().optional().describe('Email address'),
-      phone: z.string().optional().describe('Phone number'),
-      companyId: z.string().optional().describe('ID of associated company'),
-      jobTitle: z.string().optional().describe('Job title'),
-      linkedinUrl: z.string().url().optional().describe('LinkedIn profile URL'),
-      city: z.string().optional().describe('City where the contact is located'),
-      customFields: z.record(z.string(), z.any()).optional().describe('Custom fields as key-value pairs (e.g. {"specialization": "Classic European", "instagramHandle": "@dealer"})'),
+      description: 'Create a new contact (person) in Twenty CRM. Standard fields are listed below. Any additional workspace custom fields (e.g. specialization, instagramHandle, dealershipName, contactChannel) can be passed as top-level parameters.',
+      inputSchema: z.object({
+        firstName: z.string().describe('First name of the contact'),
+        lastName: z.string().describe('Last name of the contact'),
+        email: z.string().optional().describe('Email address'),
+        phone: z.string().optional().describe('Phone number'),
+        companyId: z.string().optional().describe('ID of associated company'),
+        jobTitle: z.string().optional().describe('Job title'),
+        linkedinUrl: z.string().optional().describe('LinkedIn profile URL'),
+        city: z.string().optional().describe('City where the contact is located'),
+      }).passthrough(),
     },
-    async (args) => {
+    async (args: any) => {
     try {
-      // Transform flat input to Twenty's nested structure
+      const { firstName, lastName, email, phone, companyId, jobTitle, linkedinUrl, city, ...extraFields } = args;
       const personData: any = {
-        name: {
-          firstName: args.firstName,
-          lastName: args.lastName,
-        },
-        ...(args.email && {
-          emails: {
-            primaryEmail: args.email,
-          },
-        }),
-        ...(args.phone && {
-          phones: {
-            primaryPhoneNumber: args.phone,
-          },
-        }),
-        ...(args.companyId && { companyId: args.companyId }),
-        ...(args.jobTitle && { jobTitle: args.jobTitle }),
-        ...(args.linkedinUrl && {
-          linkedinLink: {
-            primaryLinkUrl: args.linkedinUrl,
-          },
-        }),
-        ...(args.city && { city: args.city }),
+        name: { firstName, lastName },
+        ...(email && { emails: { primaryEmail: email } }),
+        ...(phone && { phones: { primaryPhoneNumber: phone } }),
+        ...(companyId && { companyId }),
+        ...(jobTitle && { jobTitle }),
+        ...(linkedinUrl && { linkedinLink: { primaryLinkUrl: linkedinUrl } }),
+        ...(city && { city }),
+        ...extraFields,
       };
 
-      // Merge custom fields and always use REST API (supports both standard and custom fields)
-      if (args.customFields) {
-        Object.assign(personData, args.customFields);
-      }
       const result = await client.restCreate('people', personData);
       const p = result.createPerson || result.createPeople?.[0] || result;
       return {
         content: [{
           type: 'text' as const,
-          text: `Contact created successfully: ${args.firstName} ${args.lastName} (ID: ${p.id})`
+          text: `Contact created successfully: ${firstName} ${lastName} (ID: ${p.id})`
         }]
       };
     } catch (error) {
@@ -95,26 +78,25 @@ export function registerPersonTools(server: McpServer, client: TwentyClient) {
     }
   });
 
-  server.tool(
+  server.registerTool(
     'update_contact',
-    'Update an existing contact in Twenty CRM',
     {
-      id: z.string().describe('Contact ID to update'),
-      firstName: z.string().optional().describe('First name'),
-      lastName: z.string().optional().describe('Last name'),
-      email: z.string().email().optional().describe('Email address'),
-      phone: z.string().optional().describe('Phone number'),
-      companyId: z.string().optional().describe('ID of associated company'),
-      jobTitle: z.string().optional().describe('Job title'),
-      linkedinUrl: z.string().url().optional().describe('LinkedIn profile URL'),
-      city: z.string().optional().describe('City'),
-      customFields: z.record(z.string(), z.any()).optional().describe('Custom fields as key-value pairs (e.g. {"specialization": "Classic European", "instagramHandle": "@dealer"})'),
+      description: 'Update an existing contact in Twenty CRM. Standard fields are listed below. Any additional workspace custom fields can be passed as top-level parameters.',
+      inputSchema: z.object({
+        id: z.string().describe('Contact ID to update'),
+        firstName: z.string().optional().describe('First name'),
+        lastName: z.string().optional().describe('Last name'),
+        email: z.string().optional().describe('Email address'),
+        phone: z.string().optional().describe('Phone number'),
+        companyId: z.string().optional().describe('ID of associated company'),
+        jobTitle: z.string().optional().describe('Job title'),
+        linkedinUrl: z.string().optional().describe('LinkedIn profile URL'),
+        city: z.string().optional().describe('City'),
+      }).passthrough(),
     },
-    async (args) => {
+    async (args: any) => {
     try {
-      const { id, firstName, lastName, email, phone, companyId, jobTitle, linkedinUrl, city } = args;
-
-      // Transform flat input to Twenty's nested structure
+      const { id, firstName, lastName, email, phone, companyId, jobTitle, linkedinUrl, city, ...extraFields } = args;
       const updates: any = {};
       if (firstName || lastName) {
         updates.name = {
@@ -128,10 +110,7 @@ export function registerPersonTools(server: McpServer, client: TwentyClient) {
       if (jobTitle) updates.jobTitle = jobTitle;
       if (linkedinUrl) updates.linkedinLink = { primaryLinkUrl: linkedinUrl };
       if (city) updates.city = city;
-      // Merge custom fields and always use REST API
-      if (args.customFields) {
-        Object.assign(updates, args.customFields);
-      }
+      Object.assign(updates, extraFields);
       const result = await client.restUpdate('people', id, updates);
       const p = result.updatePerson || result;
       return {
@@ -207,65 +186,42 @@ export function registerPersonTools(server: McpServer, client: TwentyClient) {
 }
 
 export function registerCompanyTools(server: McpServer, client: TwentyClient) {
-  server.tool(
+  server.registerTool(
     'create_company',
-    'Create a new company in Twenty CRM',
     {
-      name: z.string().describe('Company name'),
-      domainName: z.string().optional().describe('Company domain name'),
-      address: z.string().optional().describe('Company address'),
-      employees: z.number().optional().describe('Number of employees'),
-      linkedinUrl: z.string().url().optional().describe('LinkedIn company URL'),
-      xUrl: z.string().url().optional().describe('X (Twitter) company URL'),
-      annualRecurringRevenue: z.number().optional().describe('Annual recurring revenue'),
-      idealCustomerProfile: z.boolean().optional().describe('Is this an ideal customer profile'),
-      customFields: z.record(z.string(), z.any()).optional().describe('Custom fields as key-value pairs (e.g. {"tier": "GOLD", "specialization": "Luxury"})'),
+      description: 'Create a new company in Twenty CRM. Standard fields are listed below. Any additional workspace custom fields (e.g. specialization, estimatedInventorySize, tier) can be passed as top-level parameters.',
+      inputSchema: z.object({
+        name: z.string().describe('Company name'),
+        domainName: z.string().optional().describe('Company domain name'),
+        address: z.string().optional().describe('Company address'),
+        employees: z.number().optional().describe('Number of employees'),
+        linkedinUrl: z.string().optional().describe('LinkedIn company URL'),
+        xUrl: z.string().optional().describe('X (Twitter) company URL'),
+        annualRecurringRevenue: z.number().optional().describe('Annual recurring revenue'),
+        idealCustomerProfile: z.boolean().optional().describe('Is this an ideal customer profile'),
+      }).passthrough(),
     },
-    async (args) => {
+    async (args: any) => {
     try {
-      // Transform flat input to Twenty's nested structure
-      const companyData = {
-        name: args.name,
-        ...(args.domainName && {
-          domainName: {
-            primaryLinkUrl: args.domainName,
-          },
-        }),
-        ...(args.address && {
-          address: {
-            addressStreet1: args.address,
-          },
-        }),
-        ...(args.employees && { employees: args.employees }),
-        ...(args.linkedinUrl && {
-          linkedinLink: {
-            primaryLinkUrl: args.linkedinUrl,
-          },
-        }),
-        ...(args.xUrl && {
-          xLink: {
-            primaryLinkUrl: args.xUrl,
-          },
-        }),
-        ...(args.annualRecurringRevenue && {
-          annualRecurringRevenue: {
-            amountMicros: args.annualRecurringRevenue * 1000000, // Convert to micros
-            currencyCode: 'USD',
-          },
-        }),
-        ...(args.idealCustomerProfile !== undefined && { idealCustomerProfile: args.idealCustomerProfile }),
+      const { name, domainName, address: addr, employees, linkedinUrl, xUrl, annualRecurringRevenue, idealCustomerProfile, ...extraFields } = args;
+      const companyData: any = {
+        name,
+        ...(domainName && { domainName: { primaryLinkUrl: domainName } }),
+        ...(addr && { address: { addressStreet1: addr } }),
+        ...(employees && { employees }),
+        ...(linkedinUrl && { linkedinLink: { primaryLinkUrl: linkedinUrl } }),
+        ...(xUrl && { xLink: { primaryLinkUrl: xUrl } }),
+        ...(annualRecurringRevenue && { annualRecurringRevenue: { amountMicros: annualRecurringRevenue * 1000000, currencyCode: 'USD' } }),
+        ...(idealCustomerProfile !== undefined && { idealCustomerProfile }),
+        ...extraFields,
       };
 
-      // Merge custom fields and always use REST API
-      if (args.customFields) {
-        Object.assign(companyData, args.customFields);
-      }
       const result = await client.restCreate('companies', companyData);
       const c = result.createCompany || result;
       return {
         content: [{
           type: 'text' as const,
-          text: `Company created successfully: ${args.name} (ID: ${c.id})`
+          text: `Company created successfully: ${name} (ID: ${c.id})`
         }]
       };
     } catch (error) {
@@ -303,67 +259,42 @@ export function registerCompanyTools(server: McpServer, client: TwentyClient) {
     }
   });
 
-  server.tool(
+  server.registerTool(
     'update_company',
-    'Update an existing company in Twenty CRM',
     {
-      id: z.string().describe('Company ID to update'),
-      name: z.string().optional().describe('Company name'),
-      domainName: z.string().optional().describe('Company domain name'),
-      address: z.string().optional().describe('Company address'),
-      employees: z.number().optional().describe('Number of employees'),
-      linkedinUrl: z.string().url().optional().describe('LinkedIn company URL'),
-      xUrl: z.string().url().optional().describe('X (Twitter) company URL'),
-      annualRecurringRevenue: z.number().optional().describe('Annual recurring revenue'),
-      idealCustomerProfile: z.boolean().optional().describe('Is this an ideal customer profile'),
-      customFields: z.record(z.string(), z.any()).optional().describe('Custom fields as key-value pairs (e.g. {"tier": "GOLD", "specialization": "Luxury"})'),
+      description: 'Update an existing company in Twenty CRM. Any workspace custom fields can be passed as top-level parameters.',
+      inputSchema: z.object({
+        id: z.string().describe('Company ID to update'),
+        name: z.string().optional().describe('Company name'),
+        domainName: z.string().optional().describe('Company domain name'),
+        address: z.string().optional().describe('Company address'),
+        employees: z.number().optional().describe('Number of employees'),
+        linkedinUrl: z.string().optional().describe('LinkedIn company URL'),
+        xUrl: z.string().optional().describe('X (Twitter) company URL'),
+        annualRecurringRevenue: z.number().optional().describe('Annual recurring revenue'),
+        idealCustomerProfile: z.boolean().optional().describe('Is this an ideal customer profile'),
+      }).passthrough(),
     },
-    async (args) => {
+    async (args: any) => {
     try {
-      const { id, ...updateData } = args;
-      
-      // Transform flat input to Twenty's nested structure
-      const updates = {
-        ...(updateData.name && { name: updateData.name }),
-        ...(updateData.domainName && {
-          domainName: {
-            primaryLinkUrl: updateData.domainName,
-          },
-        }),
-        ...(updateData.address && {
-          address: {
-            addressStreet1: updateData.address,
-          },
-        }),
-        ...(updateData.employees && { employees: updateData.employees }),
-        ...(updateData.linkedinUrl && {
-          linkedinLink: {
-            primaryLinkUrl: updateData.linkedinUrl,
-          },
-        }),
-        ...(updateData.xUrl && {
-          xLink: {
-            primaryLinkUrl: updateData.xUrl,
-          },
-        }),
-        ...(updateData.annualRecurringRevenue && {
-          annualRecurringRevenue: {
-            amountMicros: updateData.annualRecurringRevenue * 1000000,
-            currencyCode: 'USD',
-          },
-        }),
-        ...(updateData.idealCustomerProfile !== undefined && { idealCustomerProfile: updateData.idealCustomerProfile }),
+      const { id, name, domainName, address: addr, employees, linkedinUrl, xUrl, annualRecurringRevenue, idealCustomerProfile, ...extraFields } = args;
+      const updates: any = {
+        ...(name && { name }),
+        ...(domainName && { domainName: { primaryLinkUrl: domainName } }),
+        ...(addr && { address: { addressStreet1: addr } }),
+        ...(employees && { employees }),
+        ...(linkedinUrl && { linkedinLink: { primaryLinkUrl: linkedinUrl } }),
+        ...(xUrl && { xLink: { primaryLinkUrl: xUrl } }),
+        ...(annualRecurringRevenue && { annualRecurringRevenue: { amountMicros: annualRecurringRevenue * 1000000, currencyCode: 'USD' } }),
+        ...(idealCustomerProfile !== undefined && { idealCustomerProfile }),
+        ...extraFields,
       };
-      // Merge custom fields and always use REST API
-      if (args.customFields) {
-        Object.assign(updates, args.customFields);
-      }
       const result = await client.restUpdate('companies', id, updates);
       const c = result.updateCompany || result;
       return {
         content: [{
           type: 'text' as const,
-          text: `Company updated successfully: ${c.name || args.name || 'Updated'}`
+          text: `Company updated successfully: ${c.name || name || 'Updated'}`
         }]
       };
     } catch (error) {

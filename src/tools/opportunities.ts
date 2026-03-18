@@ -3,40 +3,39 @@ import { z } from 'zod';
 import { TwentyClient } from '../client/twenty-client.js';
 
 export function registerOpportunityTools(server: McpServer, client: TwentyClient) {
-  server.tool(
+  server.registerTool(
     'create_opportunity',
-    'Create a new opportunity/deal in Twenty CRM',
     {
-      name: z.string().describe('Opportunity name'),
-      amount: z.object({
-        value: z.number().describe('Amount in currency units (e.g., 1000.50 for $1,000.50)'),
-        currency: z.string().default('USD').describe('Currency code (e.g., USD, EUR)')
-      }).optional().describe('Deal amount'),
-      stage: z.string().optional().describe('Sales stage (e.g., NEW, SCREENING, MEETING, PROPOSAL, CUSTOMER)'),
-      closeDate: z.string().optional().describe('Expected close date (ISO 8601 format)'),
-      companyId: z.string().optional().describe('ID of associated company'),
-      pointOfContactId: z.string().optional().describe('ID of main contact person'),
-      customFields: z.record(z.string(), z.any()).optional().describe('Custom fields as key-value pairs'),
+      description: 'Create a new opportunity/deal in Twenty CRM. Any workspace custom fields (e.g. painPoint, currentToolsObserved) can be passed as top-level parameters.',
+      inputSchema: z.object({
+        name: z.string().describe('Opportunity name'),
+        amount: z.object({
+          value: z.number().describe('Amount in currency units (e.g., 1000.50 for $1,000.50)'),
+          currency: z.string().default('USD').describe('Currency code (e.g., USD, EUR)')
+        }).optional().describe('Deal amount'),
+        stage: z.string().optional().describe('Sales stage (e.g., NEW, SCREENING, MEETING, PROPOSAL, CUSTOMER)'),
+        closeDate: z.string().optional().describe('Expected close date (ISO 8601 format)'),
+        companyId: z.string().optional().describe('ID of associated company'),
+        pointOfContactId: z.string().optional().describe('ID of main contact person'),
+      }).passthrough(),
     },
-    async ({ name, amount, stage, closeDate, companyId, pointOfContactId, customFields }) => {
+    async (args: any) => {
       try {
+        const { name, amount, stage, closeDate, companyId, pointOfContactId, ...extraFields } = args;
         const opportunityData: any = { name };
-        
+
         if (amount) {
           opportunityData.amount = {
             amountMicros: Math.round(amount.value * 1000000),
             currencyCode: amount.currency
           };
         }
-        
+
         if (stage) opportunityData.stage = stage;
         if (closeDate) opportunityData.closeDate = closeDate;
         if (companyId) opportunityData.companyId = companyId;
         if (pointOfContactId) opportunityData.pointOfContactId = pointOfContactId;
-        // Merge custom fields and always use REST API
-        if (customFields) {
-          Object.assign(opportunityData, customFields);
-        }
+        Object.assign(opportunityData, extraFields);
         const result = await client.restCreate('opportunities', opportunityData);
         const o = result.createOpportunity || result;
         return {
@@ -106,47 +105,46 @@ Contact ID: ${opportunity.pointOfContactId || 'None'}`
     }
   );
 
-  server.tool(
+  server.registerTool(
     'update_opportunity',
-    'Update an existing opportunity in Twenty CRM',
     {
-      id: z.string().describe('Opportunity ID to update'),
-      name: z.string().optional().describe('Opportunity name'),
-      amount: z.object({
-        value: z.number().describe('Amount in currency units'),
-        currency: z.string().describe('Currency code')
-      }).optional().describe('Deal amount'),
-      stage: z.string().optional().describe('Sales stage'),
-      closeDate: z.string().optional().describe('Expected close date'),
-      companyId: z.string().optional().describe('ID of associated company'),
-      pointOfContactId: z.string().optional().describe('ID of main contact person'),
-      customFields: z.record(z.string(), z.any()).optional().describe('Custom fields as key-value pairs'),
+      description: 'Update an existing opportunity in Twenty CRM. Any workspace custom fields can be passed as top-level parameters.',
+      inputSchema: z.object({
+        id: z.string().describe('Opportunity ID to update'),
+        name: z.string().optional().describe('Opportunity name'),
+        amount: z.object({
+          value: z.number().describe('Amount in currency units'),
+          currency: z.string().describe('Currency code')
+        }).optional().describe('Deal amount'),
+        stage: z.string().optional().describe('Sales stage'),
+        closeDate: z.string().optional().describe('Expected close date'),
+        companyId: z.string().optional().describe('ID of associated company'),
+        pointOfContactId: z.string().optional().describe('ID of main contact person'),
+      }).passthrough(),
     },
-    async (input) => {
+    async (input: any) => {
       try {
+        const { id, name, amount, stage, closeDate, companyId, pointOfContactId, ...extraFields } = input;
         const updateData: any = {};
-        
-        if (input.name) updateData.name = input.name;
-        if (input.amount) {
+
+        if (name) updateData.name = name;
+        if (amount) {
           updateData.amount = {
-            amountMicros: Math.round(input.amount.value * 1000000),
-            currencyCode: input.amount.currency
+            amountMicros: Math.round(amount.value * 1000000),
+            currencyCode: amount.currency
           };
         }
-        if (input.stage) updateData.stage = input.stage;
-        if (input.closeDate) updateData.closeDate = input.closeDate;
-        if (input.companyId) updateData.companyId = input.companyId;
-        if (input.pointOfContactId) updateData.pointOfContactId = input.pointOfContactId;
-        // Merge custom fields and always use REST API
-        if (input.customFields) {
-          Object.assign(updateData, input.customFields);
-        }
-        const result = await client.restUpdate('opportunities', input.id, updateData);
+        if (stage) updateData.stage = stage;
+        if (closeDate) updateData.closeDate = closeDate;
+        if (companyId) updateData.companyId = companyId;
+        if (pointOfContactId) updateData.pointOfContactId = pointOfContactId;
+        Object.assign(updateData, extraFields);
+        const result = await client.restUpdate('opportunities', id, updateData);
         const o = result.updateOpportunity || result;
         return {
           content: [{
             type: 'text',
-            text: `Updated opportunity: ${o.name || input.name || 'Updated'} (ID: ${input.id})`
+            text: `Updated opportunity: ${o.name || name || 'Updated'} (ID: ${id})`
           }],
           data: o
         };
